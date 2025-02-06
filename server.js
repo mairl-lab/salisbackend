@@ -18,7 +18,7 @@ app.use(express.json());
 
 // Configure CORS (adjust the origin setting for production)
 const corsOptions = {
-  origin: 'https://your-github-username.github.io'
+  origin: 'https://mairl-lab.github.io'
 };
 app.use(cors(corsOptions));
 
