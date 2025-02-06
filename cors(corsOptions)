@@ -18,9 +18,16 @@ app.use(express.json());
 
 // Configure CORS (adjust the origin setting for production)
 const corsOptions = {
-  origin: 'https://mairl-lab.github.io'
+  origin: 'https://salis.live',
+  methods: ['POST', 'OPTIONS'], // Explicitly allow these methods
+  allowedHeaders: ['Content-Type']
 };
 app.use(cors(corsOptions));
+
+// Handle OPTIONS requests explicitly
+app.options('/chat', cors(corsOptions), (req, res) => {
+  res.sendStatus(204);
+});
 
 // Apply rate limiting to the /chat endpoint to prevent abuse
 const chatLimiter = rateLimit({
