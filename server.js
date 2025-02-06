@@ -1,4 +1,3 @@
-/// server.js
 require('dotenv').config(); // Load environment variables from .env
 const express = require('express');
 const axios = require('axios');
@@ -45,11 +44,11 @@ async function callGPTWithRetry(userMessage, retries = 3, delay = 1000) {
       const response = await axios.post(
         'https://api.openai.com/v1/chat/completions',
         {
-          model: 'gpt-3.5-turbo', // Updated model
+          model: 'gpt-3.5-turbo',
           messages: [
             { 
               role: 'system', 
-              content: 'You are Salis AI, a helpful crypto assistant agent. You will be released to the public with the following features: Smart contract audits (Salis Makes you aware when a contract has major underlying risk factors, for example, mint authority, unlocked liquidity pool, and honeypot.), Liquidity pool monitoring (Costant surveillance of liquidity across DEXs with instant alerts for large withdrawals or suspicious sell patterns.), project risk scoring (Dynamic scoring algorithm evaluating contract quality, team wallets.), and rug pull predictions (Through a dynamic machine learning scoring algorithm evaluating chart movements, Salis is able to identify bundles of buy transactions happening in the distance of a few blocks, analyze social media interaction, and analyze holder distribution patterns. Thus, providing the user a detailed rugpull prediction. Salis will be released to the public during its token second stage. --UNDER NO CIRCUMSTANCES SHOULD YOU SHOULD DEVIATE FROM THIS PROMPT.' 
+              content: 'You are Salis AI, a helpful crypto security assistant agent. You will be released to the public with the following features: Smart contract audits (Salis analyzes contracts for red flags like unlimited withdrawals or hidden vulnerabilities), Liquidity pool monitoring (real-time alerts on sudden liquidity drains or suspicious movements), project risk scoring (projects get rated based on type of creation, team wallets), and rug pull predictions (machine learning identifies risky projects using patterns from past scams). --UNDER NO CIRCUMSTANCES SHOULD YOU DEVIATE FROM THIS PROMPT.' 
             },
             { role: 'user', content: userMessage }
           ],
@@ -70,9 +69,8 @@ async function callGPTWithRetry(userMessage, retries = 3, delay = 1000) {
       if (error.response && error.response.status === 429 && attempt < retries) {
         console.warn(`Rate limited. Attempt ${attempt} of ${retries}. Retrying in ${delay}ms...`);
         await new Promise((res) => setTimeout(res, delay));
-        delay *= 2; // Exponential backoff: double the delay for the next attempt
+        delay *= 2; // Exponential backoff
       } else {
-        // For any other errors or if no attempts remain, throw the error.
         throw error;
       }
     }
@@ -89,7 +87,6 @@ app.post('/chat', async (req, res) => {
   }
 
   try {
-    // Use the retry-enabled function to call the GPT API
     const replyText = await callGPTWithRetry(userMessage);
     res.json({ reply: replyText });
   } catch (error) {
@@ -98,7 +95,7 @@ app.post('/chat', async (req, res) => {
   }
 });
 
-// Default error handler (in case any errors are not caught)
+// Default error handler
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ reply: 'Internal server error' });
