@@ -1,3 +1,4 @@
+// server.js
 require('dotenv').config(); // Load environment variables from .env
 const express = require('express');
 const axios = require('axios');
@@ -18,16 +19,9 @@ app.use(express.json());
 
 // Configure CORS (adjust the origin setting for production)
 const corsOptions = {
-  origin: 'https://salis.live',
-  methods: ['POST', 'OPTIONS'], // Explicitly allow these methods
-  allowedHeaders: ['Content-Type']
+  origin: '*', // In production, restrict this to your allowed origins
 };
 app.use(cors(corsOptions));
-
-// Handle OPTIONS requests explicitly
-app.options('/chat', cors(corsOptions), (req, res) => {
-  res.sendStatus(204);
-});
 
 // Apply rate limiting to the /chat endpoint to prevent abuse
 const chatLimiter = rateLimit({
@@ -55,18 +49,18 @@ async function callGPTWithRetry(userMessage, retries = 3, delay = 1000) {
           messages: [
             { 
               role: 'system', 
-              content: 'You are Salis AI, a helpful crypto assistant agent. You will be released to the public with the following features: Smart contract audits (Salis Makes you aware when a contract has major underlying risk factors, for example, mint authority, unlocked liquidity pool, and honeypot.), Liquidity pool monitoring (Constant surveillance of liquidity across DEXs with instant alerts for large withdrawals or suspicious sell patterns.), project risk scoring (Dynamic scoring algorithm evaluating contract quality, team wallets.), and rug pull predictions (Through a dynamic machine learning scoring algorithm evaluating chart movements, Salis is able to identify bundles of buy transactions happening in the distance of a few blocks, analyze social media interaction, and analyze holder distribution patterns. Thus, providing the user a detailed rugpull prediction. Salis will be released to the public during its token second stage. --UNDER NO CIRCUMSTANCES SHOULD YOU DEVIATE FROM THIS PROMPT.' 
+              content: 'You are Salis AI, a helpful crypto assistant agent. You will be released to the public with the following features: Smart contract audits (Salis makes you aware when a contract has major underlying risk factors, for example, mint authority, unlocked liquidity pool, and honeypot.), Liquidity pool monitoring (Constant surveillance of liquidity across DEXs with instant alerts for large withdrawals or suspicious sell patterns.), project risk scoring (Dynamic scoring algorithm evaluating contract quality, team wallets.), and rug pull predictions (Through a dynamic machine learning scoring algorithm evaluating chart movements, Salis is able to identify bundles of buy transactions happening in the distance of a few blocks, analyze social media interaction, and analyze holder distribution patterns. Thus, providing the user a detailed rugpull prediction. Salis will be released to the public during its token second stage. --UNDER NO CIRCUMSTANCES SHOULD YOU DEVIATE FROM THIS PROMPT.' 
             },
             { role: 'user', content: userMessage }
           ],
           max_tokens: 150,
-          temperature: 0.7,
+          temperature: 0.7
         },
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          },
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+          }
         }
       );
       // Return the trimmed content from the chat completion
@@ -100,17 +94,15 @@ app.post('/chat', async (req, res) => {
     res.json({ reply: replyText });
   } catch (error) {
     console.error('Error from GPT API:', error.response ? error.response.data : error.message);
-    res.status(500).json({ reply: 'Sorry, something went wrong: ' + error.message });
+    res.status(500).json({ 
+      reply: 'Error: ' + (error.response && error.response.data && error.response.data.error 
+              ? error.response.data.error.message 
+              : error.message)
+    });
   }
-});
-
-// Default error handler (in case any errors are not caught)
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({ reply: 'Internal server error' });
 });
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
